@@ -31,6 +31,7 @@ type stateFn func(*Scanner) stateFn
 func Init(input string) *Scanner {
 	s := &Scanner{
 		input: input,
+		state: exprFn,
 		Items: make(chan TokenItem, 2),
 	}
 	go s.run()
@@ -159,4 +160,17 @@ func scanNumber(s *Scanner) stateFn {
 
 	s.emit(token.NUMBER)
 	return exprFn
+}
+
+func (s *Scanner) NextItem() TokenItem {
+	for {
+		select {
+		case item := <-s.Items:
+			fmt.Println("Item Returned")
+			return item
+		default:
+			s.state = s.state(s)
+		}
+	}
+	panic("not reached")
 }
