@@ -53,39 +53,39 @@ func (n *NumberNode) String() string {
 	return n.NumberValue
 }
 
-type ListNode struct {
+type OperatorNode struct {
 	ParentNode Node
 	Operator   token.Token
 	rhs, lhs   Node
 }
 
-func (n *ListNode) Init(t token.Token) *ListNode {
+func (n *OperatorNode) Init(t token.Token) *OperatorNode {
 	n.Operator = t
 	return n
 }
-func (n *ListNode) Parent() Node {
+func (n *OperatorNode) Parent() Node {
 	return n.ParentNode
 }
-func (n *ListNode) Rhs() Node {
+func (n *OperatorNode) Rhs() Node {
 	return n.rhs
 }
-func (n *ListNode) Lhs() Node {
+func (n *OperatorNode) Lhs() Node {
 	return n.lhs
 }
-func (n *ListNode) String() string {
+func (n *OperatorNode) String() string {
 	return n.Operator.String()
 }
 
 type Parser struct {
-	scanner     *scanner.Scanner
-	itemStack   []Node
-	root        Node
-	currentNode Node
+	scanner   *scanner.Scanner
+	itemStack []Node
+
+	currentTokenItem scanner.TokenItem
 }
 
 func (p *Parser) next() scanner.TokenItem {
 	item := p.scanner.NextItem()
-
+	p.currentTokenItem = item
 	return item
 }
 func (p *Parser) push(node Node) {
@@ -108,9 +108,7 @@ func (p *Parser) pop() *Node {
 func Init(scanner *scanner.Scanner) *Parser {
 
 	parser := &Parser{
-		scanner:     scanner,
-		root:        nil,
-		currentNode: nil,
+		scanner: scanner,
 	}
 
 	return parser
@@ -122,7 +120,30 @@ func (p *Parser) Parse() (Node, error) {
 
 }
 
-func (p *Parser) parseList(rhs *ListNode) (Node, error) {
+func (p *Parser) parseFactor() (Node, error) {
+	item := p.next()
+
+	switch item.Token {
+	case token.NUMBER:
+		return new(NumberNode).Init(item.Value), nil
+	case token.LPAREN:
+		node, _ := p.parseExpr()
+		rParen := p.next()
+
+		if rParen.Token != token.RPAREN {
+			return nil, errors.New("Missing clossing brace")
+		}
+		return node, nil
+	}
+	return nil, errors.New("Invalid AST")
+
+}
+
+func (p *Parser) parseExpr() (Node, error) {
+
+}
+
+func (p *Parser) parseList(rhs *OperatorNode) (Node, error) {
 	item := p.next()
 	if item.Token != token.NUMBER {
 		return nil, errors.New("Expected a Number")
@@ -133,7 +154,7 @@ func (p *Parser) parseList(rhs *ListNode) (Node, error) {
 	item = p.next()
 	switch item.Token {
 	case token.ADD, token.SUB, token.MUL, token.QUO:
-		node := new(ListNode)
+		node := new(OperatorNode)
 		node.Operator = item.Token
 		node.ParentNode = rhs
 		node.lhs = numberNode

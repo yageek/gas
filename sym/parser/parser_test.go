@@ -22,10 +22,10 @@ func expectNumberValue(node Node, value string) error {
 
 func expectOperator(node Node, t token.Token) error {
 
-	v, ok := node.(*ListNode)
+	v, ok := node.(*OperatorNode)
 
 	if !ok {
-		return errors.New("Node is node a ListNode")
+		return errors.New("Node is node a OperatorNode")
 	}
 
 	if v.Operator != t {

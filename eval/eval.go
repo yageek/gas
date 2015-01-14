@@ -27,8 +27,8 @@ func (e *Evaluator) Eval(node parser.Node) (int64, error) {
 		v, _ := node.(*parser.NumberNode)
 		return strconv.ParseInt(v.NumberValue, 10, 32)
 
-	case *parser.ListNode:
-		v, _ := node.(*parser.ListNode)
+	case *parser.OperatorNode:
+		v, _ := node.(*parser.OperatorNode)
 		v1, _ := e.Eval(node.Lhs())
 		v2, _ := e.Eval(node.Rhs())
 
