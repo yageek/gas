@@ -166,7 +166,6 @@ func (s *Scanner) NextItem() TokenItem {
 	for {
 		select {
 		case item := <-s.Items:
-			fmt.Println("Item Returned")
 			return item
 		default:
 			s.state = s.state(s)
